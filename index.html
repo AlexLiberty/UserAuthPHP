@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Реєстрація</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #usernameStatus {
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+<div id="registerContainer">
+    <h1>Реєстрація</h1>
+    <form id="registerForm">
+        <div id="usernameContainer">
+            <label for="username">Логін:</label>
+            <span id="usernameStatus"></span>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div>
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">Зареєструватись</button>
+    </form>
+    <div id="registerStatus"></div>
+</div>
+
+<script>
+    $(document).ready(function ()
+    {
+        $('#username').on('input', function ()
+        {
+            const username = $(this).val();
+
+            if (username.length > 0) {
+                $.ajax({
+                    url: 'check_username.php',
+                    method: 'POST',
+                    data: { username: username },
+                    success: function (response)
+                    {
+                        if (response.trim() === 'taken')
+                        {
+                            $('#usernameStatus')
+                                .text('Логін зайнятий')
+                                .removeClass('success')
+                                .addClass('error');
+                        } else if (response.trim() === 'available')
+                        {
+                            $('#usernameStatus')
+                                .text('Логін доступний')
+                                .removeClass('error')
+                                .addClass('success');
+                        } else {
+                            $('#usernameStatus')
+                                .text('Помилка перевірки')
+                                .removeClass('success')
+                                .addClass('error');
+                        }
+                    },
+                    error: function () {
+                        $('#usernameStatus')
+                            .text('Помилка на сервері')
+                            .removeClass('success')
+                            .addClass('error');
+                    }
+                });
+            } else {
+                $('#usernameStatus').text('');
+            }
+        });
+
+        $('#registerForm').submit(function (e)
+        {
+            e.preventDefault();
+            const formData = $(this).serialize();
+            $.ajax({
+                url: 'register.php',
+                method: 'POST',
+                data: formData,
+                success: function (response) {
+                    if (response.trim() === 'success')
+                    {
+                        $('#registerStatus')
+                            .text('Реєстрація успішна!')
+                            .removeClass('error')
+                            .addClass('success');
+                    } else if (response.trim() === 'taken')
+                    {
+                        $('#registerStatus')
+                            .text('Логін зайнятий!')
+                            .removeClass('success')
+                            .addClass('error');
+                    } else {
+                        $('#registerStatus')
+                            .text('Помилка реєстрації! Заповніть всі поля правильно.')
+                            .removeClass('success')
+                            .addClass('error');
+                    }
+                },
+                error: function ()
+                {
+                    $('#registerStatus')
+                        .text('Помилка на сервері. Спробуйте пізніше.')
+                        .removeClass('success')
+                        .addClass('error');
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
